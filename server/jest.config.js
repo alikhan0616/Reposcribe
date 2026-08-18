@@ -4,6 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/__tests__'],
   testMatch: ['**/*.test.ts'],
+  setupFiles: ['<rootDir>/jest.setup.ts'],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/index.ts'],
   clearMocks: true,
 };

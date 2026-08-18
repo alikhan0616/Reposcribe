@@ -6,6 +6,7 @@ import { reposRouter } from './routes/repos';
 import { chatRouter } from './routes/chat';
 import { metricsRouter } from './routes/metrics';
 import { attachAuth } from './middleware/auth';
+import { globalLimiter } from './middleware/rateLimit';
 
 /**
  * Builds the Express application. Kept separate from `index.ts` (which owns
@@ -14,6 +15,12 @@ import { attachAuth } from './middleware/auth';
  */
 export function createApp(): Application {
   const app = express();
+
+  // In production we sit behind a host proxy (Render/Railway/Vercel), so the
+  // real client IP is in X-Forwarded-For. Tell Express how many proxies to
+  // trust so rate limiting keys off the client, not the proxy. A NUMBER, never
+  // `true` (which express-rate-limit rejects as IP-spoofable).
+  app.set('trust proxy', env.rateLimit.trustProxy);
 
   app.use(
     cors({
@@ -26,7 +33,14 @@ export function createApp(): Application {
   // Clerk auth (no-op unless CLERK_SECRET_KEY is set).
   attachAuth(app);
 
+  // Health is mounted before the global limiter so liveness/readiness probes
+  // (which hosts hit frequently) never burn the rate-limit budget.
   app.use('/api/health', healthRouter);
+
+  // Broad safety-net limiter for the rest of the API (per-route limiters below
+  // add tighter caps on the expensive endpoints).
+  app.use('/api', globalLimiter);
+
   app.use('/api/repos', reposRouter);
   app.use('/api/chat', chatRouter);
   app.use('/api/metrics', metricsRouter);

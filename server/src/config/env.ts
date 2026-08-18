@@ -57,4 +57,23 @@ export const env = {
   // ─── Auth (Clerk — optional; enforced only when a secret key is set) ───
   clerkSecretKey: process.env.CLERK_SECRET_KEY ?? '',
   clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY ?? '',
+
+  // ─── Rate limiting (express-rate-limit) ───
+  // Protects the expensive LLM/ingestion endpoints from abuse and runaway API
+  // spend. Auto-disabled under tests so the suite isn't order-dependent;
+  // override either way with RATE_LIMIT_ENABLED=true|false.
+  rateLimit: {
+    enabled:
+      process.env.RATE_LIMIT_ENABLED != null
+        ? process.env.RATE_LIMIT_ENABLED === 'true'
+        : (process.env.NODE_ENV ?? 'development') !== 'test',
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000', 10),
+    ingestMax: parseInt(process.env.RATE_LIMIT_INGEST_MAX ?? '10', 10),
+    chatMax: parseInt(process.env.RATE_LIMIT_CHAT_MAX ?? '20', 10),
+    globalMax: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX ?? '100', 10),
+    // How many reverse proxies sit in front of us (Render/Railway/Vercel = 1).
+    // Must be a NUMBER — express-rate-limit rejects `trust proxy: true` because
+    // it lets clients spoof X-Forwarded-For and dodge the limit.
+    trustProxy: parseInt(process.env.TRUST_PROXY ?? '1', 10),
+  },
 } as const;

@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import { getIngestQueue } from '../workers/queue';
 import { isValidGitHubUrl } from '../services/ingest/clone';
 import { getManifest, getRawFile, presignRawFile } from '../services/ingest/s3';
@@ -7,6 +6,7 @@ import { parseGitHubRepo, getRepoInfo } from '../services/agent/tools/github';
 import { countRepoChunks } from '../services/embeddings/qdrant';
 import { MAX_REPO_KB } from '../config/ingest';
 import { requireUser, getUserId, enforceOwnership, authEnabled } from '../middleware/auth';
+import { ingestLimiter } from '../middleware/rateLimit';
 import { listUserRepos, removeUserRepo } from '../services/history';
 
 export const reposRouter = Router();
@@ -27,15 +27,6 @@ reposRouter.get('/', async (req: Request, res: Response) => {
     // Registry is a convenience layer; never fail the whole screen over it.
     return res.json({ repos: [] });
   }
-});
-
-/** Cap ingestion requests to prevent abuse. */
-const ingestLimiter = rateLimit({
-  windowMs: 60_000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many ingestion requests, please try again later.' },
 });
 
 /** POST /api/repos — validate + enqueue an ingestion job. */

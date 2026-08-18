@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { HumanMessage, AIMessage, BaseMessage } from '@langchain/core/messages';
 import { streamAgent } from '../services/agent/graph';
 import { requireUser, getUserId, enforceOwnership } from '../middleware/auth';
+import { chatLimiter } from '../middleware/rateLimit';
 import {
   getChatHistory,
   appendChatTurns,
@@ -34,9 +35,9 @@ function tokenize(text: string): string[] {
 /**
  * POST /api/chat — streams the agent's response over SSE.
  * Events: `trace` (per tool call), `citations`, `token` (answer chunks),
- * `done`, and `error`.
+ * `done`, and `error`. Rate-limited (each message drives several LLM calls).
  */
-chatRouter.post('/', async (req: Request, res: Response) => {
+chatRouter.post('/', chatLimiter, async (req: Request, res: Response) => {
   const { repoId, message, history } = req.body ?? {};
   if (typeof repoId !== 'string' || !repoId || typeof message !== 'string' || !message) {
     return res.status(400).json({ error: 'repoId and message are required.' });
