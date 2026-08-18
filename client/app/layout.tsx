@@ -19,5 +19,20 @@ export default function RootLayout({
     </html>
   );
   // Only wrap in ClerkProvider when configured, so the app also runs auth-free.
-  return hasClerk ? <ClerkProvider>{html}</ClerkProvider> : html;
+  // Point Clerk at the app's own /sign-in and /sign-up routes so OAuth (and any
+  // other sign-in redirect) completes on this domain, instead of Clerk's hosted
+  // Account Portal at accounts.<domain> — which doesn't exist on a *.vercel.app
+  // host. Fallback redirect URLs send users back into the app after auth.
+  return hasClerk ? (
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
+      {html}
+    </ClerkProvider>
+  ) : (
+    html
+  );
 }
