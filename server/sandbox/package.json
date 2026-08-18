@@ -1,0 +1,12 @@
+{
+  "name": "reposcribe-sandbox",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@eslint/js": "^9",
+    "eslint": "^9",
+    "prettier": "^3",
+    "typescript": "^5",
+    "typescript-eslint": "^8"
+  }
+}
