@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { RepoIntake } from '@/components/RepoIntake';
 import { Workspace } from '@/components/Workspace';
 import { AuthGate } from '@/components/AuthGate';
+import { BackendGate } from '@/components/BackendGate';
 import { useUserId } from '@/lib/userContext';
 import {
   getCurrentRepoId,
@@ -45,8 +46,10 @@ function App() {
 
 export default function Home() {
   return (
-    <AuthGate>
-      <App />
-    </AuthGate>
+    <BackendGate>
+      <AuthGate>
+        <App />
+      </AuthGate>
+    </BackendGate>
   );
 }

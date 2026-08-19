@@ -32,12 +32,13 @@ async function toApiError(res: Response): Promise<ApiError> {
   return new ApiError(message, res.status);
 }
 
-async function getJson<T>(path: string): Promise<T> {
+async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
       cache: 'no-store',
       headers: await authHeaders(),
+      signal,
     });
   } catch (err) {
     throw new ApiError(`Could not reach the server: ${(err as Error).message}`);
@@ -46,8 +47,13 @@ async function getJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export async function fetchHealth(): Promise<HealthResponse> {
-  return getJson<HealthResponse>('/api/health');
+/**
+ * Pings the server's liveness endpoint. Accepts an optional `AbortSignal` so a
+ * caller (e.g. the cold-start wake-up gate) can time out a hung request and retry
+ * — Render's free tier can leave a cold-starting connection open for a while.
+ */
+export async function fetchHealth(signal?: AbortSignal): Promise<HealthResponse> {
+  return getJson<HealthResponse>('/api/health', signal);
 }
 
 /** POST /api/repos — start ingestion, returns the job id. */
