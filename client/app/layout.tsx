@@ -1,11 +1,22 @@
-import type { Metadata } from 'next';
-import { ClerkProvider } from '@clerk/nextjs';
-import './globals.css';
-import 'highlight.js/styles/github-dark.css';
+import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
+import "highlight.js/styles/github-dark.css";
 
 export const metadata: Metadata = {
-  title: 'RepoScribe',
-  description: 'Agentic RAG Codebase Assistant — chat with any GitHub repo.',
+  title: "RepoScribe",
+  description: "Agentic RAG Codebase Assistant — chat with any GitHub repo.",
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/favicon-180x180.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
