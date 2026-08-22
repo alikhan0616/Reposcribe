@@ -17,7 +17,13 @@ export function getRedisConnectionOptions(): ConnectionOptions {
     port: Number(u.port || 6379),
     ...(u.username ? { username: decodeURIComponent(u.username) } : {}),
     ...(u.password ? { password: decodeURIComponent(u.password) } : {}),
-    ...(u.protocol === 'rediss:' ? { tls: {} } : {}),
+    ...(u.protocol === 'rediss:'
+      ? {
+          tls: {
+            servername: u.hostname,
+          },
+        }
+      : {}),
     maxRetriesPerRequest: null,
   };
 }
